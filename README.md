@@ -1,20 +1,14 @@
 # Ghidra-HexEditor
-A hex editor implemented as a Ghidra plugin
+A Hex Editor implemented as a Ghidra Plugin
 > much of the original source code is forked from https://github.com/javadev/hexeditor
+
+![gui](./img/gui.png)
 
 ## Installation and Setup:
 
-1. Clone the repository from Gitlab
+1. Clone the repository from Github
 
-   1. If you haven't done so, Gitlab requires ssh keys for access.
-
-      `ssh-keygen -t ed25519`
-
-   2. add the public key to your ssh keys
-
-   3. Clone the repository
-
-      `git clone https://github.com/sengi12/ghidra-hexEditor.git`
+   `git clone https://github.com/sengi12/ghidra-hexEditor.git`
 
 2. Install the latest version of Ghidra
 
