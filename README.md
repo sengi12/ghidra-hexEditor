@@ -20,8 +20,16 @@ A Hex Editor implemented as a Ghidra Plugin
 4. Map the Script Manager to your `ghidra-hexEditor` repo
 
    1. Click the green play button in the task bar (script manager)
+
+      ![script_mgr](./img/script_mgr.png)
+
    2. Click on the icon called "script directories" when hovered over
+
+      ![script_dir](./img/script_dir.png)
+
    3. Click the green `+` (plus sign) and add the ghidra-hexEditor directory to the list
+
+      <img src="./img/script_dir_menu.png" alt="script_dir_menu" style="zoom:50%;" />
 
 5. Run HexEditor for testing
 
