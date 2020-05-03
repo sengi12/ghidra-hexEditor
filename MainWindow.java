@@ -168,7 +168,7 @@ public class MainWindow extends JPanel implements ActionListener, ItemListener, 
     }
 
     public static int getWindowHeight() {
-        return 700;
+        return 630;
     }
 
     public JComponent help() {
@@ -375,8 +375,8 @@ public class MainWindow extends JPanel implements ActionListener, ItemListener, 
     }
 
     protected void find() {
-        this.hex.frame.setSize(MainWindow.getWindowWidth(), MainWindow.getWindowHeight()+40);
-        this.hex.frame.setMinimumSize(new Dimension(MainWindow.getWindowWidth(), MainWindow.getWindowHeight()+40));
+        this.hex.frame.setSize(MainWindow.getWindowWidth(), MainWindow.getWindowHeight()+60);
+        this.hex.frame.setMinimumSize(new Dimension(MainWindow.getWindowWidth(), MainWindow.getWindowHeight()+60));
         this.findPBar.setString("");
         this.fP0.add(this.fP1, "West");
         this.validate();
