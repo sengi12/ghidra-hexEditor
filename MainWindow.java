@@ -134,8 +134,8 @@ public class MainWindow extends JPanel implements ActionListener, ItemListener, 
         
         // Editor instantiation
         editor = new binEdit(hex, this, path);
-        int mainH = getWindowHeight()-200;
-        int mainW = getWindowWidth()-50;
+        int mainH = getWindowHeight()-220;
+        int mainW = getWindowWidth()-80;
         editor.setPreferredSize(new Dimension(mainW, mainH));
         editor.setSize(new Dimension(mainW, mainH));
         ++gbc.gridy;
