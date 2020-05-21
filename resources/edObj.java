@@ -1,6 +1,8 @@
+package resources;
+
 import java.util.Stack;
 
-class edObj {
+public class edObj {
 
    int a1;
    public long p1 = -1L;

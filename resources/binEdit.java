@@ -1,3 +1,4 @@
+package resources;
 
 import java.awt.Color;
 import java.awt.Cursor;
@@ -41,13 +42,13 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.Timer;
 
-class binEdit extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener, ActionListener, AdjustmentListener {
+public class binEdit extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener, ActionListener, AdjustmentListener {
 
    /**
     *
     */
    private static final long serialVersionUID = 1L;
-   public HexEditor hex;
+   public GhidraSrc hex;
    public String path;
    boolean nibArea = true;
    boolean isNibLow = false;
@@ -99,7 +100,7 @@ class binEdit extends JPanel implements MouseListener, MouseMotionListener, Mous
    long longInput = 0L;
 
 
-   public binEdit(HexEditor h, MainWindow m, String p) {
+   public binEdit(GhidraSrc h, MainWindow m, String p) {
       hex = h;
       path = p;
       this.mw = m;

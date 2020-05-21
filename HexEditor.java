@@ -1,3 +1,6 @@
+// This is the main HexEditor Script.
+// To edit settings, please edit files within the resources directory
+
 import ghidra.app.script.GhidraScript;
 
 import java.io.File;
@@ -17,8 +20,12 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
-public class HexEditor extends GhidraScript {
-    public MainWindow mw;
+import resources.MainWindow;
+import resources.GhidraSrc;
+import resources.*; 
+
+public class HexEditor extends GhidraSrc {
+    public resources.MainWindow mw;
     public String currentDirectory;
     public String name;
     public JFrame frame;
@@ -26,24 +33,18 @@ public class HexEditor extends GhidraScript {
 
     @Override
     protected void run() throws Exception {
-        currentDirectory = sourceFile.getAbsolutePath();
-        currentDirectory = currentDirectory.substring(0, currentDirectory.length()-14);
-        name = currentProgram.getName();
+        this.currentDirectory = sourceFile.getAbsolutePath();
+        this.currentDirectory = currentDirectory.substring(0, currentDirectory.length()-14);
+        this.name = currentProgram.getName();
         writeBinLocation();
         this.frame = new JFrame(String.format("Ghidra Hex Editor    :   %s", name));
         String path = currentProgram.getExecutablePath();
-        mw = new MainWindow(this, path);
-        frame.getContentPane().add(mw);
-        frame.setSize(MainWindow.getWindowWidth(), MainWindow.getWindowHeight());
-        frame.setMinimumSize(new Dimension(MainWindow.getWindowWidth(), MainWindow.getWindowHeight()));
-        frame.setVisible(true);
-        frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-    }
-
-    public void dbprint(String s){
-        if(DEBUG){
-            print(s);
-        }
+        this.mw = new resources.MainWindow(this, path);
+        this.frame.getContentPane().add(mw);
+        this.frame.setSize(resources.MainWindow.getWindowWidth(), resources.MainWindow.getWindowHeight());
+        this.frame.setMinimumSize(new Dimension(resources.MainWindow.getWindowWidth(), resources.MainWindow.getWindowHeight()));
+        this.frame.setVisible(true);
+        this.frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     }
 
     public void writeBinLocation(){ // run python cleanup.py to recompile program

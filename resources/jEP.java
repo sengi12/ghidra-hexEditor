@@ -1,3 +1,5 @@
+package resources;
+
 import java.net.URL;
 import java.text.MessageFormat;
 import javax.swing.JEditorPane;
@@ -6,7 +8,7 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.event.HyperlinkEvent.EventType;
 
-class jEP extends JScrollPane implements HyperlinkListener {
+public class jEP extends JScrollPane implements HyperlinkListener {
 
    /**
     *

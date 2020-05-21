@@ -1,3 +1,5 @@
+package resources;
+
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -8,7 +10,7 @@ import java.util.Vector;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 
-class saveT extends Thread {
+public class saveT extends Thread {
 
    File f1;
    File f2;

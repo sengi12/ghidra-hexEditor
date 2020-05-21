@@ -1,4 +1,6 @@
-class math {
+package resources;
+
+public class math {
 
    public static double nextUp(double var0) {
       if(!Double.isNaN(var0) && var0 != Double.POSITIVE_INFINITY) {

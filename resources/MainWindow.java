@@ -1,3 +1,5 @@
+package resources;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.math.BigDecimal;
@@ -45,7 +47,7 @@ public class MainWindow extends JPanel implements ActionListener, ItemListener, 
      */
     private static final long serialVersionUID = 1L;
     public String path;
-    public HexEditor hex;
+    public GhidraSrc hex;
     public binEdit editor;
     
     public JMenu menu;
@@ -92,7 +94,7 @@ public class MainWindow extends JPanel implements ActionListener, ItemListener, 
     public DecimalFormat dForm = new DecimalFormat("#.###################E0");
 
 
-    public MainWindow(HexEditor h, String p) {
+    public MainWindow(GhidraSrc h, String p) {
         this.path = p;
         this.hex = h;
 
@@ -187,7 +189,7 @@ public class MainWindow extends JPanel implements ActionListener, ItemListener, 
         return editorPane;
     }
 
-    private JPanel status(HexEditor hex) {
+    private JPanel status(GhidraSrc hex) {
         String[][] statStrMatrix = new String[][]{{"BE", "LE "}, {"Binary", "Byte, signed/unsigned    ", "Short (16), signed", "Short (16), unsigned", "Int (32), signed", "Int (32), unsigned", "Long (64), signed", "Long (64), unsigned", "Float (32)", "Double (64)", "DOS-US/OEM-US/cp437", "UTF-8", "UTF-16"}, {"<html>Big-Endian (natural order) or little-Endian (Intel order).", "<html>Conversion rule for the data following the caret (shown here after)."}};
 
         try {

@@ -1,3 +1,5 @@
+package resources;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
@@ -7,7 +9,7 @@ import java.io.InputStreamReader;
 import java.util.Vector;
 import javax.swing.Timer;
 
-class slaveT extends Thread implements ActionListener {
+public class slaveT extends Thread implements ActionListener {
 
    binEdit hexV;
    Timer timer = new Timer(300, this);

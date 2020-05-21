@@ -12,7 +12,11 @@ if(len(dir_str) < 1) :
     exit(0)
 files = []
 p = os.listdir(pwd)
+r = os.listdir(pwd+"/resources/")
 for item in p:
+    if(item.endswith(".java")):
+        files.append(str(item[:-5]))
+for item in r:
     if(item.endswith(".java")):
         files.append(str(item[:-5]))
 o = os.listdir(dir_str)

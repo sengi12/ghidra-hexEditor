@@ -1,10 +1,12 @@
+package resources;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Vector;
 import javax.swing.JProgressBar;
 
-class findT extends Thread {
+public class findT extends Thread {
 
    File f1;
    Vector v1;
