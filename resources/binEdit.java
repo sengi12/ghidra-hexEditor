@@ -1,5 +1,7 @@
 package resources;
 
+import docking.widgets.combobox.GComboBox;
+
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
@@ -28,6 +30,9 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Iterator;
@@ -41,6 +46,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.Timer;
+import javax.swing.JFileChooser;
 
 public class binEdit extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener, ActionListener, AdjustmentListener {
 
@@ -140,7 +146,26 @@ public class binEdit extends JPanel implements MouseListener, MouseMotionListene
       this.InsDelTF.setColumns(9);
       this.InsDelOption[5] = this.InsDelTF;
       this.jSbSource = false;
-      File f = new File(path);
+      Path filePath = Paths.get(path);
+      File f;
+      if(!Files.exists(filePath)){
+        hex.dbprint("Path does not exist locally: "+path+"\n");
+        JFileChooser chooser = new JFileChooser();
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        chooser.setDialogTitle("Export "+hex.getName()+" to...");
+        chooser.showDialog(mw, "Export Local Copy");
+        try {
+            path = chooser.getSelectedFile().getAbsolutePath();
+        } catch (NullPointerException e){
+            f = new File(p);
+        }
+        String fullpath = path+"/"+hex.getName();
+        f = new File(fullpath);
+        hex.dbprint("Exporting "+f.getAbsolutePath());
+        hex.createFile(f);
+      } else {
+        f = new File(path);
+      }
       loadFile(f);
       this.jFC = new JFileChooser(path);
       this.jFC.setAcceptAllFileFilterUsed(false);
@@ -920,6 +945,24 @@ public class binEdit extends JPanel implements MouseListener, MouseMotionListene
             var19.printStackTrace();
          }
          break;
+      case 91: // Export
+        File f;
+        JFileChooser chooser = new JFileChooser();
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        chooser.setDialogTitle("Export "+hex.getName()+" to...");
+        chooser.showDialog(mw, "Export Local Copy");
+        try {
+            path = chooser.getSelectedFile().getAbsolutePath();
+        } catch (NullPointerException e){
+            f = new File("");
+            break;
+        }
+        String fullpath = path+"/"+hex.getName();
+        f = new File(fullpath);
+        hex.dbprint("Exporting "+f.getAbsolutePath());
+        hex.createFile(f);
+        this.loadFile(f);
+        break;
       case 83: // Save As
          if(this.sav == null) {
             this.save1();

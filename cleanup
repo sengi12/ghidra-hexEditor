@@ -24,3 +24,8 @@ for item in o:
     if(item.endswith(".class") and item[:-6] in files):
         os.remove(dir_str + item)
         print("deleted: "+item)
+o = os.listdir(dir_str+'/resources/')
+for item in o:
+    if(item.endswith(".class") and item[:-6] in files):
+        os.remove(dir_str + '/resources/' + item)
+        print("deleted: resources/"+item)

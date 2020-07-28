@@ -247,6 +247,7 @@ public class MainWindow extends JPanel implements ActionListener, ItemListener, 
                "Open", 
                "Save as ", 
                "Close file (Q)", 
+               "Export Local Copy",
                "Take Screenshot"
             }, 
             {"Edit", 
@@ -277,10 +278,29 @@ public class MainWindow extends JPanel implements ActionListener, ItemListener, 
             {"Help", 
                "Toggle help"
             }
+        }; 
+        // case statement key codes
+        // decimal representations of ascii key
+        int[][] KeyDec = new int[][]{
+            {70, 79, 83, 81, 91, 80}, 
+            {91, 65, 90, 89, 88, 67, 86, 70, 155, 127}, 
+            {86, 71, 77, 68, 85, 84, 107, 109, 87}, 
+            {178, 521, 45}, {72, 72}
         };
-        int[][] var6 = new int[][]{{70, 79, 83, 81, 80}, {69, 65, 90, 89, 88, 67, 86, 70, 155, 127}, {86, 71, 77, 68, 85, 84, 107, 109, 87}, {178, 521, 45}, {72, 72}};
-        int[][] var7 = new int[][]{{70, 79, 83, 81, 80}, {69, 65, 90, 89, 88, 67, 86, 70, 73, 68}, {86, 71, 77, 68, 85, 84, 72, 76, 87}, {72, 43, 45}, {72, 72}};
-        int[][] var8 = new int[][]{{0, 2, 2, 2, 2}, {0, 2, 2, 2, 2, 2, 2, 2, 0, 0}, {0, 2, 2, 2, 2, 2, 2, 2, 2}, {0, 2, 2}, {0, 2}};
+        int[][] var7 = new int[][]{
+            {70, 79, 83, 81, 91, 80}, 
+            {91, 65, 90, 89, 88, 67, 86, 70, 73, 68}, 
+            {86, 71, 77, 68, 85, 84, 72, 76, 87}, 
+            {72, 43, 45}, 
+            {72, 72}
+        };
+        int[][] KeyMod = new int[][]{
+            {0, 2, 2, 2, 2, 2}, 
+            {0, 2, 2, 2, 2, 2, 2, 2, 0, 0}, 
+            {0, 2, 2, 2, 2, 2, 2, 2, 2}, 
+            {0, 2, 2}, 
+            {0, 2}
+        };
 
 
         for(int i = 0; i < menuBarStrMatrix.length; ++i) {
@@ -288,7 +308,7 @@ public class MainWindow extends JPanel implements ActionListener, ItemListener, 
             for(int j = 1; j < menuBarStrMatrix[i].length; ++j) {
                 this.menuItem = new JMenuItem(menuBarStrMatrix[i][j], var7[i][j]);
                 if(i != 4) {
-                    this.menuItem.setAccelerator(KeyStroke.getKeyStroke(var6[i][j], var8[i][j]));
+                    this.menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyDec[i][j], KeyMod[i][j]));
                 }
 
                 this.menuItem.addActionListener(this);

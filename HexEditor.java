@@ -1,5 +1,8 @@
-// This is the main HexEditor Script.
-// To edit settings, please edit files within the resources directory
+// Ghidra-HexEditor
+// @author Michael Sengelmann
+// @category Patching Binaries
+// @keybinding alt H
+// @toolbar img/zero.png
 
 import ghidra.app.script.GhidraScript;
 
@@ -29,7 +32,6 @@ public class HexEditor extends GhidraSrc {
     public String currentDirectory;
     public String name;
     public JFrame frame;
-    private boolean DEBUG = false;
 
     @Override
     protected void run() throws Exception {
@@ -45,6 +47,11 @@ public class HexEditor extends GhidraSrc {
         this.frame.setMinimumSize(new Dimension(resources.MainWindow.getWindowWidth(), resources.MainWindow.getWindowHeight()));
         this.frame.setVisible(true);
         this.frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+    }
+
+    @Override
+    public String getName(){
+        return currentProgram.getName();
     }
 
     public void writeBinLocation(){ // run python cleanup.py to recompile program
