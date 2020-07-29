@@ -58,7 +58,7 @@ public class HexEditor extends GhidraSrc {
         GhidraProvider mp = new GhidraProvider();
         String path = mp.getClass(sourceFile, "Cantordust").getAbsolutePath();
         path = path.substring(0, path.length()-16);
-        String fileName = currentDirectory+"ghidra_bin_location.txt";
+        String fileName = currentDirectory+"/ghidra_bin_location.txt";
         try{
             OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(fileName), StandardCharsets.UTF_8);
             writer.write(path);
