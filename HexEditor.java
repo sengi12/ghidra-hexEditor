@@ -39,7 +39,8 @@ public class HexEditor extends GhidraSrc {
         this.currentDirectory = currentDirectory.substring(0, currentDirectory.length()-14);
         this.name = currentProgram.getName();
         writeBinLocation();
-        this.frame = new JFrame(String.format("Ghidra Hex Editor    :   %s", name));
+        this.frame = new JFrame();
+        this.frame.setTitle(String.format("Ghidra Hex Editor    :   %s", name));
         String path = currentProgram.getExecutablePath();
         this.mw = new resources.MainWindow(this, path);
         this.frame.getContentPane().add(mw);
@@ -64,5 +65,10 @@ public class HexEditor extends GhidraSrc {
             writer.write(path);
             writer.close();
         }catch(IOException e){}
+    }
+    @Override
+    public void changeTitle(String s){
+        this.frame.setTitle(String.format("Ghidra Hex Editor    :   %s",s));
+        this.frame.repaint();
     }
 }

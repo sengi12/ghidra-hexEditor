@@ -108,7 +108,7 @@ public class binEdit extends JPanel implements MouseListener, MouseMotionListene
 
    public binEdit(GhidraSrc h, MainWindow m, String p) {
       hex = h;
-      path = p;
+      path = new String(p);
       this.mw = m;
       setLayout(new GridBagLayout());
       GridBagConstraints gbc = new GridBagConstraints();
@@ -919,7 +919,9 @@ public class binEdit extends JPanel implements MouseListener, MouseMotionListene
 
             this.closeFile();
             if(key == 79 && this.jFC.showOpenDialog(this) == 0) {
-               this.loadFile(this.jFC.getSelectedFile());
+               File f = this.jFC.getSelectedFile();
+               this.loadFile(f);
+               this.hex.changeTitle(f.getName());
             }
          } else {
             JOptionPane.showMessageDialog(this, "Busy, save or find running.");

@@ -49,4 +49,6 @@ public class GhidraSrc extends GhidraScript{
             dbprint("ERROR Saving File Locally\n"+e.toString());
         }
     }
+
+    public void changeTitle(String s){}
 }
