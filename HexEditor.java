@@ -1,5 +1,8 @@
-// This is the main HexEditor Script.
-// To edit settings, please edit files within the resources directory
+// Ghidra-HexEditor
+// @author Michael Sengelmann
+// @category Patching Binaries
+// @keybinding alt H
+// @toolbar img/zero.png
 
 import ghidra.app.script.GhidraScript;
 
@@ -29,7 +32,6 @@ public class HexEditor extends GhidraSrc {
     public String currentDirectory;
     public String name;
     public JFrame frame;
-    private boolean DEBUG = false;
 
     @Override
     protected void run() throws Exception {
@@ -37,7 +39,8 @@ public class HexEditor extends GhidraSrc {
         this.currentDirectory = currentDirectory.substring(0, currentDirectory.length()-14);
         this.name = currentProgram.getName();
         writeBinLocation();
-        this.frame = new JFrame(String.format("Ghidra Hex Editor    :   %s", name));
+        this.frame = new JFrame();
+        this.frame.setTitle(String.format("Ghidra Hex Editor    :   %s", name));
         String path = currentProgram.getExecutablePath();
         // currentProgram.getExecutablePath() returns path with an extra / at beginning on Windows 10
         // This check will remove that extra character
@@ -52,6 +55,11 @@ public class HexEditor extends GhidraSrc {
         this.frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     }
 
+    @Override
+    public String getName(){
+        return currentProgram.getName();
+    }
+
     public void writeBinLocation(){ // run python cleanup.py to recompile program
         GhidraProvider mp = new GhidraProvider();
         String path = mp.getClass(sourceFile, "Cantordust").getAbsolutePath();
@@ -62,5 +70,10 @@ public class HexEditor extends GhidraSrc {
             writer.write(path);
             writer.close();
         }catch(IOException e){}
+    }
+    @Override
+    public void changeTitle(String s){
+        this.frame.setTitle(String.format("Ghidra Hex Editor    :   %s",s));
+        this.frame.repaint();
     }
 }
