@@ -39,6 +39,11 @@ public class HexEditor extends GhidraSrc {
         writeBinLocation();
         this.frame = new JFrame(String.format("Ghidra Hex Editor    :   %s", name));
         String path = currentProgram.getExecutablePath();
+        // currentProgram.getExecutablePath() returns path with an extra / at beginning on Windows 10
+        // This check will remove that extra character
+        if(System.getProperty("os.name").equals("Windows 10") && (path.charAt(0) == '\\' || path.charAt(0) == '/')) {
+            path = path.substring(1);
+        }
         this.mw = new resources.MainWindow(this, path);
         this.frame.getContentPane().add(mw);
         this.frame.setSize(resources.MainWindow.getWindowWidth(), resources.MainWindow.getWindowHeight());
