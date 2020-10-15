@@ -60,9 +60,9 @@ public class HexEditor extends GhidraSrc {
         return currentProgram.getName();
     }
 
-    public void writeBinLocation(){ // run python cleanup.py to recompile program
+    public void writeBinLocation(){ // run python ./cleanup to recompile program
         GhidraProvider mp = new GhidraProvider();
-        String path = mp.getClass(sourceFile, "Cantordust").getAbsolutePath();
+        String path = mp.getClass(sourceFile, "HexEditor").getAbsolutePath();
         path = path.substring(0, path.length()-16);
         String fileName = currentDirectory+"/ghidra_bin_location.txt";
         try{
