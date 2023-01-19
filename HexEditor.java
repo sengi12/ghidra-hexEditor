@@ -38,7 +38,6 @@ public class HexEditor extends GhidraSrc {
         this.currentDirectory = sourceFile.getAbsolutePath();
         this.currentDirectory = currentDirectory.substring(0, currentDirectory.length()-14);
         this.name = currentProgram.getName();
-        writeBinLocation();
         this.frame = new JFrame();
         this.frame.setTitle(String.format("Ghidra Hex Editor    :   %s", name));
         String path = currentProgram.getExecutablePath();
@@ -60,17 +59,6 @@ public class HexEditor extends GhidraSrc {
         return currentProgram.getName();
     }
 
-    public void writeBinLocation(){ // run python ./cleanup to recompile program
-        GhidraProvider mp = new GhidraProvider();
-        String path = mp.getClass(sourceFile, "HexEditor").getAbsolutePath();
-        path = path.substring(0, path.length()-16);
-        String fileName = currentDirectory+"/ghidra_bin_location.txt";
-        try{
-            OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(fileName), StandardCharsets.UTF_8);
-            writer.write(path);
-            writer.close();
-        }catch(IOException e){}
-    }
     @Override
     public void changeTitle(String s){
         this.frame.setTitle(String.format("Ghidra Hex Editor    :   %s",s));
