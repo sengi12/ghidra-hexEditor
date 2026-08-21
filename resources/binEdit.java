@@ -2,7 +2,6 @@ package resources;
 
 import docking.widgets.combobox.GComboBox;
 
-import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -31,7 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -60,7 +59,6 @@ public class binEdit extends JPanel implements MouseListener, MouseMotionListene
    boolean isNibLow = false;
    boolean jSbSource = true;
    boolean isApplet;
-   boolean isOled = false;
    int[] xPos;
    int[] xNib = new int[32];
    int[] xTxt = new int[16];
@@ -110,16 +108,6 @@ public class binEdit extends JPanel implements MouseListener, MouseMotionListene
       hex = h;
       path = new String(p);
       this.mw = m;
-      setLayout(new GridBagLayout());
-      GridBagConstraints gbc = new GridBagConstraints();
-      gbc.gridx = MainWindow.getWindowWidth();
-      gbc.gridy = 0;
-      gbc.gridwidth = MainWindow.getWindowWidth()-45;
-      gbc.gridheight = MainWindow.getWindowHeight()-50;
-      gbc.fill = GridBagConstraints.BOTH;
-
-      setSize(new Dimension(MainWindow.getWindowWidth()-45,MainWindow.getWindowHeight()-50));
-      setLayout(new GridBagLayout());
       this.setGrid(14);
       this.addMouseListener(this);
       this.addMouseMotionListener(this);
@@ -130,7 +118,6 @@ public class binEdit extends JPanel implements MouseListener, MouseMotionListene
       mw.jSB.setUnitIncrement(1);
       mw.jSB.addMouseWheelListener(this);
       mw.jSB.addAdjustmentListener(this);
-      add(mw.jSB, gbc);
       this.timer.addActionListener(this);
       this.isApplet = true;
       String[] var3 = new String[]{"Delete", "Insert & fill with 0x00", "Insert & fill with 0xFF", "Insert & fill with 0x20 (space)", "or Insert clipboard"};
@@ -146,23 +133,22 @@ public class binEdit extends JPanel implements MouseListener, MouseMotionListene
       this.InsDelTF.setColumns(9);
       this.InsDelOption[5] = this.InsDelTF;
       this.jSbSource = false;
-      Path filePath = Paths.get(path);
       File f;
-      if(!Files.exists(filePath)){
+      if(!existsLocally(path)){
         hex.dbprint("Path does not exist locally: "+path+"\n");
         JFileChooser chooser = new JFileChooser();
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         chooser.setDialogTitle("Export "+hex.getName()+" to...");
         chooser.showDialog(mw, "Export Local Copy");
-        try {
-            path = chooser.getSelectedFile().getAbsolutePath();
-        } catch (NullPointerException e){
+        File dir = chooser.getSelectedFile();
+        if(dir == null) { // export cancelled, nothing was written locally
             f = new File(p);
+        } else {
+            path = dir.getAbsolutePath();
+            f = new File(path, hex.getName());
+            hex.dbprint("Exporting "+f.getAbsolutePath());
+            hex.createFile(f);
         }
-        String fullpath = path+"/"+hex.getName();
-        f = new File(fullpath);
-        hex.dbprint("Exporting "+f.getAbsolutePath());
-        hex.createFile(f);
       } else {
         f = new File(path);
       }
@@ -193,6 +179,21 @@ public class binEdit extends JPanel implements MouseListener, MouseMotionListene
       this.undoStack.clear();
       this.doVirtual();
       System.gc();
+   }
+
+   /**
+    * Paths.get() answers a malformed path with InvalidPathException, and because
+    * that is unchecked it used to tear down the whole script - which is exactly
+    * how a Windows path carrying a leading separator surfaced in issues #2 and #3.
+    * Report such a path as "not here" so the export dialog opens instead.
+    */
+   private boolean existsLocally(String p) {
+      try {
+         return Files.exists(Paths.get(p));
+      } catch (InvalidPathException e) {
+         hex.dbprint("Not a usable path on this platform: "+p+"\n");
+         return false;
+      }
    }
 
    public void loadFile(File var1) {
@@ -228,12 +229,16 @@ public class binEdit extends JPanel implements MouseListener, MouseMotionListene
       int var2;
       if(var1 != this.fontSize) {
          this.fontSize = var1 < var3?var3:(var4 < var1?var4:var1);
-         FontMetrics var6 = this.getFontMetrics(this.font = new Font("Monospaced", this.fontSize < 27?0:1, this.fontSize));
+         FontMetrics var6 = this.getFontMetrics(this.font = Theme.monoFont(this.fontSize < 27?0:1, this.fontSize));
          this.cShift = var6.getWidths();
          this.wChar = -1;
 
-         for(var2 = 0; var2 < 256; ++var2) {
-            this.wChar = var2 != 9 && this.cShift[var2] > this.wChar?this.cShift[var2]:this.wChar;
+         // Measure the printable ASCII range only. Sizing every cell to the widest
+         // glyph in all of Latin-1 meant one substituted glyph - Menlo has no char
+         // 131, and the fallback is 14px against an 8px digit - stretched the whole
+         // grid by three quarters and left every digit floating in its cell.
+         for(var2 = 32; var2 < 127; ++var2) {
+            this.wChar = this.cShift[var2] > this.wChar?this.cShift[var2]:this.wChar;
          }
 
          this.wChar = var6.charWidth('\u2219') > this.wChar?var6.charWidth('\u2219'):this.wChar;
@@ -342,13 +347,23 @@ public class binEdit extends JPanel implements MouseListener, MouseMotionListene
 
    }
 
+   /**
+    * Sized from the grid metrics instead of a hard coded pixel count, so the host
+    * window can be packed around the content and resized freely afterwards.
+    */
+   public Dimension getPreferredSize() {
+      if(this.wChar < 1 || this.xTxt[15] < 1) {
+         return new Dimension(720, 420);
+      }
+      return new Dimension(this.wChar * (this.xTxt[15] + 4), this.hChar * 26);
+   }
+
    protected void paintComponent(Graphics var1) {
       this.paintImg(var1, true);
    }
 
    protected void paintImg(Graphics var1, boolean var2) {
       char[] var3 = new char[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-      Color[] var4 = new Color[]{Color.WHITE, Color.BLACK, new Color(50, 50, 50, 40), new Color(50, 50, 50, 80), Color.GREEN, Color.RED, Color.BLUE, Color.YELLOW, Color.MAGENTA, Color.CYAN, Color.GREEN.darker(), new Color(0, 0, 0, 0)};
       byte[] var5 = new byte[2];
       int[] var10 = new int[2];
       int[] var11 = new int[2];
@@ -360,10 +375,32 @@ public class binEdit extends JPanel implements MouseListener, MouseMotionListene
          this.setSrc();
       }
 
-      var1.setColor(var4[this.isOled?1:0]);
+      Theme.applyTextHints(var1);
+      var1.setColor(Theme.canvasBackground());
       var1.fillRect(0, 0, this.getWidth(), this.getHeight());
+
+      // banding first, so every glyph and highlight lands on top of it: every
+      // other row is tinted, and the row holding the caret is tinted more
+      int[] caretRC = this.pos2XY(this.lastPos);
+      boolean caretShown = this.scrPos <= this.lastPos && this.lastPos - (long)this.maxPos <= this.scrPos;
+      for(int band = 0; band < this.maxRow; ++band) {
+         if(caretShown && band == caretRC[1]) {
+            var1.setColor(Theme.canvasCurrentRow());
+         } else if((band & 1) == 1) {
+            var1.setColor(Theme.canvasBand());
+         } else {
+            continue;
+         }
+         var1.fillRect(0, this.hChar * band + 1, this.getWidth(), this.hChar);
+      }
+
+      // hairlines splitting the offset gutter, the hex pane and the decoded text
+      var1.setColor(Theme.canvasRule());
+      var1.fillRect(this.wChar * (this.xNib[0] - 3), 0, 1, this.getHeight());
+      var1.fillRect(this.wChar * (this.xTxt[0] - 3), 0, 1, this.getHeight());
+
       var1.setFont(this.font);
-      var1.setColor(var4[this.isOled?7:6]);
+      var1.setColor(Theme.canvasOffset());
       this.hLimit = 0;
 
       char var6;
@@ -383,11 +420,11 @@ public class binEdit extends JPanel implements MouseListener, MouseMotionListene
       }
 
       if(var12 < 0L) {
-         var1.setColor(var4[5]);
+         var1.setColor(Theme.canvasWarning());
          var1.drawString("-- Limit = 0x7FFFFFFFFFFFFFFE = Long.MAX_VALUE-1 = 2^63-2 = 9223372036854775806 --", 0, this.hMargin + this.hChar * var9 - 3);
       }
 
-      var1.setColor(var4[9]);
+      var1.setColor(Theme.canvasSelection());
       boolean var16 = this.firstPos < this.lastPos;
       var10 = this.pos2XY(var16?this.firstPos:this.lastPos);
       var11 = this.pos2XY(!var16?this.firstPos:this.lastPos);
@@ -411,32 +448,28 @@ public class binEdit extends JPanel implements MouseListener, MouseMotionListene
          }
       }
 
-      if(this.isOled) {
-         var1.setXORMode(Color.BLACK);
-      }
-
       for(int var7 = 0; var7 < this.srcV.size() && var7 < this.maxRow << 4; ++var7) {
          var8 = var7 % 16;
          var9 = var7 >> 4;
          var5 = (byte[])((byte[])((byte[])this.srcV.get(var7)));
-         var1.setColor(var4[var5[1] != 1?11:(this.isOled?2:2)]);
+         var1.setColor(var5[1] != 1?Theme.transparent():Theme.canvasModified());
          var1.fillRect(this.wChar * this.xNib[var8 * 2] - 2, this.hChar * var9 + 3, this.wChar * 5, this.hChar - 4);
          var1.fillRect(this.wChar * this.xTxt[var8], this.hChar * var9 + 3, this.wChar * 2, this.hChar - 4);
-         var1.setColor(var4[2 < var5[1]?(this.isOled?0:5):(this.isOled?4:1)]);
+         var1.setColor(2 < var5[1]?Theme.canvasChangedByte():(var5[0] == 0?Theme.canvasFaded():Theme.canvasText()));
          var6 = var3[(255 & var5[0]) >> 4];
          var1.drawString("" + var6, this.cShift[var6] + this.wChar * this.xNib[var8 * 2], this.hMargin + this.hChar * var9);
          var6 = var3[(255 & var5[0]) % 16];
          var1.drawString("" + var6, this.cShift[var6] + this.wChar * this.xNib[var8 * 2 + 1], this.hMargin + this.hChar * var9);
          var6 = (char)(255 & var5[0]);
          if(Character.isISOControl(var6)) {
+            var1.setColor(Theme.canvasFaded());
             var1.drawString("∙", this.wChar * this.xTxt[var8], this.hMargin + this.hChar * var9);
          } else {
             var1.drawString("" + var6, this.cShift[var6] + this.wChar * this.xTxt[var8], this.hMargin + this.hChar * var9);
          }
       }
 
-      var1.setPaintMode();
-      var1.setColor(var4[10]);
+      var1.setColor(Theme.canvasMark());
       long var14;
       Iterator var17;
       if(this.markV != null && 0 < this.markV.size()) {
@@ -478,7 +511,7 @@ public class binEdit extends JPanel implements MouseListener, MouseMotionListene
       }
 
       if(this.scrPos <= this.lastPos && this.lastPos - (long)this.maxPos <= this.scrPos) {
-         var1.setColor(var4[8]);
+         var1.setColor(Theme.canvasCaret());
          var11 = this.pos2XY(this.lastPos);
          if(this.caretVisible < 2 || !var2) {
             var1.fillRect(this.wChar * (this.nibArea?this.xNib[(var11[0] << 1) + (this.isNibLow?1:0)]:this.xTxt[var11[0]]) - 1, this.hChar * var11[1] + 3, 2, this.hChar - 4);
@@ -498,6 +531,9 @@ public class binEdit extends JPanel implements MouseListener, MouseMotionListene
 
    protected void rePaint() {
       this.repaint();
+      if(this.mw.header != null) { // null while binEdit is still being constructed
+         this.mw.header.repaint();
+      }
       this.setStatus();
    }
 
@@ -508,14 +544,14 @@ public class binEdit extends JPanel implements MouseListener, MouseMotionListene
          if(this.lastPos - this.firstPos < 2147483647L && this.firstPos - this.lastPos < 2147483647L) {
             this.mw.JTsizes.setText(this.lastPos - this.firstPos + " bytes selected.");
          } else {
-            this.mw.JTsizes.setForeground(Color.red);
+            this.mw.JTsizes.setForeground(Theme.error());
             this.mw.JTsizes.setText("Don\'t select more than 2^31-1 bytes!");
          }
       } else {
          // StringBuffer var6 = new StringBuffer(this.isApplet?"Offset: ":"<html>Offset:&nbsp;<b>");
          StringBuffer var6 = new StringBuffer("Offset: ");
          var6.append(this.coloredLong(this.lastPos)).append("/-").append(this.coloredLong(this.virtualSize - this.lastPos));
-         this.mw.JTsizes.setForeground(Color.black);
+         this.mw.JTsizes.setForeground(Theme.foreground());
          this.mw.JTsizes.setText(var6.toString());
       }
 
@@ -959,8 +995,7 @@ public class binEdit extends JPanel implements MouseListener, MouseMotionListene
             f = new File("");
             break;
         }
-        String fullpath = path+"/"+hex.getName();
-        f = new File(fullpath);
+        f = new File(path, hex.getName());
         hex.dbprint("Exporting "+f.getAbsolutePath());
         hex.createFile(f);
         this.loadFile(f);
@@ -983,8 +1018,9 @@ public class binEdit extends JPanel implements MouseListener, MouseMotionListene
             this.pushHObj(new edObj(this.lastPos, (long)var6.length(), 4), var6);
          }
          break;
-      case 87: // Toggle White/Black Background
-         this.isOled = !this.isOled;
+      case 87: // Toggle Dark Mode
+         Theme.toggle();
+         this.mw.applyTheme();
          this.rePaint();
          break;
       case 89: // Redo

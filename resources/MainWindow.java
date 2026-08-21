@@ -8,6 +8,7 @@ import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 
+import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
@@ -25,17 +26,17 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
-import javax.swing.border.TitledBorder;
 
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
-import java.awt.Color;
+import java.awt.Font;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.Arrays;
@@ -49,6 +50,7 @@ public class MainWindow extends JPanel implements ActionListener, ItemListener, 
     public String path;
     public GhidraSrc hex;
     public binEdit editor;
+    public HexHeader header;
     
     public JMenu menu;
     public JMenuItem menuItem;
@@ -101,68 +103,96 @@ public class MainWindow extends JPanel implements ActionListener, ItemListener, 
         this.fP1 = this.findPanel();
         this.help = this.help();
 
-        setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
-        setLayout(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
+        setLayout(new BorderLayout());
 
-        // menu bar instantiation
+        // everything above the grid, stacked: menu bar, file path, save progress,
+        // find bar. weightx pins each row to full width at its own natural height
         createMenuBar();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = getWindowWidth();
-        gbc.gridheight = 1;
-        gbc.fill = GridBagConstraints.BOTH;
-        this.add(this.menuBar, gbc);
+        JPanel head = new JPanel(new GridBagLayout());
+        GridBagConstraints hc = new GridBagConstraints();
+        hc.gridx = 0;
+        hc.weightx = 1.0D;
+        hc.fill = GridBagConstraints.HORIZONTAL;
+        hc.anchor = GridBagConstraints.NORTH;
+        hc.gridy = 0;
+        head.add(this.menuBar, hc);
+        hc.gridy = 1;
+        head.add(this.JTFile, hc);
+        hc.gridy = 2;
+        head.add(this.jPBBP, hc);
+        hc.gridy = 3;
+        head.add(this.fP0, hc);
+        add(head, BorderLayout.NORTH);
 
-        // save progress bar
         this.savePBar.setStringPainted(true);
         this.savePBar.setString("");
-
-        // JTView
         this.JTView.setEditable(false);
-
-        // JTFile
         this.JTFile.setEditable(false);
-        ++gbc.gridy;
-        this.add(this.JTFile, gbc);
-        
-        // jPBBP JPanel
-        ++gbc.gridy;
-        this.add(this.jPBBP, gbc);
-        
-        // fP0
-        ++gbc.gridy;
-        this.add(this.fP0, gbc);
-        
-        // Editor instantiation
-        editor = new binEdit(hex, this, path);
-        int mainH = getWindowHeight()-220;
-        int mainW = getWindowWidth()-80;
-        editor.setPreferredSize(new Dimension(mainW, mainH));
-        editor.setSize(new Dimension(mainW, mainH));
-        ++gbc.gridy;
-        gbc.gridheight = mainH;
-        gbc.gridwidth = mainW;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.CENTER;
-        gbc.insets = new Insets(5, 5, 5, 5);
-        add(editor, gbc);
+        this.JTFile.setBorder(BorderFactory.createEmptyBorder(5, 8, 5, 8));
 
-        gbc.gridx += (mainW);
-        gbc.gridwidth = 1;
-        gbc.fill = 1;
-        add(jSB, gbc);
-
-        // status bar instantiation
+        // built before the grid: loading a file ends in setStatus(), which reads
+        // these combo boxes, and building them afterwards left the first status
+        // line to die on a NullPointerException that loadFile quietly swallowed
         this.stat = this.status(this.hex);
-        gbc.gridy += mainH;
-        gbc.fill = 0;
-        gbc.gridx = 0;
-        add(this.stat, gbc);
+
+        // the grid, its column ruler and its scrollbar. BorderLayout means the
+        // grid takes every pixel left over, so the window is free to resize
+        this.editor = new binEdit(this.hex, this, this.path);
+        this.header = new HexHeader(this.editor);
+        JPanel body = new JPanel(new BorderLayout());
+        body.add(this.header, BorderLayout.NORTH);
+        body.add(this.editor, BorderLayout.CENTER);
+        body.add(this.jSB, BorderLayout.EAST);
+        add(body, BorderLayout.CENTER);
+
+        add(this.stat, BorderLayout.SOUTH);
+
+        // Escape gets out of the find bar, the way it does in every other editor
+        this.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+            .put(KeyStroke.getKeyStroke("ESCAPE"), "hideFind");
+        this.getActionMap().put("hideFind", new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            public void actionPerformed(ActionEvent e) {
+                hideFind();
+            }
+        });
 
         this.dFS.setDecimalSeparator('.');
         this.fForm.setDecimalFormatSymbols(this.dFS);
         this.dForm.setDecimalFormatSymbols(this.dFS);
+
+        this.applyTheme();
+    }
+
+    /**
+     * Repaints the editor in the current theme.
+     *
+     * The walk deliberately starts at this panel and never climbs to the window:
+     * when the editor is docked inside Ghidra as a ComponentProvider, its window
+     * is Ghidra's own, and recoloring that would repaint the whole tool.
+     *
+     * The find bar and the help pane are passed separately because they spend
+     * most of their life detached, and a detached component is never reached by
+     * a walk over the visible tree.
+     */
+    public void applyTheme() {
+        Theme.apply(this);
+        Theme.apply(this.fP1);
+        Theme.apply(this.help);
+
+        // rebuilt rather than recolored: a Border cannot have its color changed
+        this.JTFile.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 1, 0, Theme.divider()),
+            BorderFactory.createEmptyBorder(5, 8, 5, 8)));
+        this.fP1.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 1, 0, Theme.divider()),
+            BorderFactory.createEmptyBorder(8, 10, 10, 10)));
+        this.stat.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(1, 0, 0, 0, Theme.divider()),
+            BorderFactory.createEmptyBorder(6, 8, 6, 8)));
+
+        this.revalidate();
+        this.repaint();
     }
 
     public static int getWindowWidth() {
@@ -201,7 +231,6 @@ public class MainWindow extends JPanel implements ActionListener, ItemListener, 
         }
 
         JPanel statPanel = new JPanel(new GridBagLayout());
-        statPanel.setBorder(BorderFactory.createEmptyBorder(2, 0, 0, 0));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.fill = GridBagConstraints.BOTH;
@@ -238,6 +267,12 @@ public class MainWindow extends JPanel implements ActionListener, ItemListener, 
         this.viewCBox[0].addItemListener(this);
         this.viewCBox[1].addItemListener(this);
         this.JTsizes.addMouseListener(this);
+
+        // offsets and decoded values are read digit by digit, so they belong in a
+        // monospaced face where the columns do not shift as the caret moves
+        this.JTsizes.setFont(Theme.monoFont(Font.PLAIN, this.JTsizes.getFont().getSize()));
+        this.JTView.setFont(Theme.monoFont(Font.PLAIN, this.JTView.getFont().getSize()));
+        this.JTView.setBorder(BorderFactory.createEmptyBorder(3, 6, 3, 6));
         return statPanel;
     }
 
@@ -327,24 +362,29 @@ public class MainWindow extends JPanel implements ActionListener, ItemListener, 
 
     private JPanel findPanel() {
         String[][] var3 = new String[][]{{"BE", "LE"}, {"Signed", "Unsigned"}, {"Short (16)", "Int (32)", "Long (64)", "Float (32)", "Double (64)", "Hexa", "ISO/CEI 8859-1", "UTF-8", "UTF-16"}, {"8 bits", "16 bits", "32 bits", "64 bits", "128 bits"}, {"<html>Big-indian (natural order) or<br>Little-indian (Intel order).", "Only for integer", "Data type", "<html>Select \'64\' if you search a machine instruction for a 64 bits processor.<br>If you don\'t know, left it at \'8\'."}, {"BE", "Unsigned", "ISO/CEI 8859-1", "128 bits"}, {"Next", "Hide"}};
-        JPanel findBar = new JPanel(new GridBagLayout());
-        JPanel searchBar = new JPanel(new GridBagLayout());
-        JPanel findOptions = new JPanel(new GridBagLayout());
-        findBar.setBorder(BorderFactory.createTitledBorder("Find:"));
-        ((TitledBorder)findBar.getBorder()).setTitleColor(Color.blue);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.anchor = 21;
-        gbc.gridwidth = getWindowWidth();
-        findBar.add(searchBar, gbc);
-        gbc.fill = 1;
-        ++gbc.gridx;
-        findBar.add(findOptions, gbc);
+        // three stacked rows: the query, its options, and the progress bar. The
+        // query field is the CENTER of a BorderLayout so it takes all the width
+        // that the label and the hint beside it do not need
+        JPanel findBar = new JPanel(new BorderLayout(0, 6));
+        JPanel searchBar = new JPanel(new BorderLayout(8, 0));
+        JPanel findOptions = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        findBar.add(searchBar, BorderLayout.NORTH);
+        findBar.add(findOptions, BorderLayout.CENTER);
         this.findPBar.setStringPainted(true);
-        findBar.add(this.findPBar, gbc);
-        searchBar.add(this.fJTF[0] = new JTextField());
+        this.findPBar.setVisible(false); // only while a search is actually running
+        findBar.add(this.findPBar, BorderLayout.SOUTH);
+
+        JLabel findLabel = new JLabel("Find");
+        findLabel.setFont(findLabel.getFont().deriveFont(Font.BOLD));
+        searchBar.add(findLabel, BorderLayout.WEST);
+        searchBar.add(this.fJTF[0] = new JTextField(), BorderLayout.CENTER);
         this.fJTF[0].addCaretListener(this);
-        searchBar.add(new JLabel("  "));
-        searchBar.add(this.fJL);
+        // hint text and the two buttons ride beside the query field rather than
+        // at the end of the options row, where a narrow window wrapped them out
+        // of sight
+        JPanel searchActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        searchActions.add(this.fJL);
+        searchBar.add(searchActions, BorderLayout.EAST);
 
         int var1;
         for(var1 = 0; var1 < this.fJCB.length; ++var1) {
@@ -364,21 +404,14 @@ public class MainWindow extends JPanel implements ActionListener, ItemListener, 
         this.fJRB.setMargin(new Insets(0, 1, 0, 1));
         this.fJRB.addActionListener(this);
         findOptions.add(this.fJRB);
-        this.fJTF[0].setPreferredSize(new Dimension(
-            this.fJCB[0].getPreferredSize().width + 
-            this.fJCB[1].getPreferredSize().width + 
-            this.fJCB[2].getPreferredSize().width + 
-            this.fJCB[3].getPreferredSize().width, 
-            this.fJTF[0].getPreferredSize().height));
-        findOptions.add(Box.createHorizontalGlue());
         findOptions.add(new JLabel("   From:"));
         findOptions.add(this.fJTF[1] = new JTextField(15));
 
         for(var1 = 0; var1 < this.fJB.length; ++var1) {
             this.fJB[var1] = new JButton(var3[6][var1]);
-            this.fJB[var1].setMargin(new Insets(3, 2, 3, 2));
+            this.fJB[var1].setMargin(new Insets(3, 8, 3, 8));
             this.fJB[var1].addActionListener(this);
-            findOptions.add(this.fJB[var1]);
+            searchActions.add(this.fJB[var1]);
         }
 
         return findBar;
@@ -397,15 +430,27 @@ public class MainWindow extends JPanel implements ActionListener, ItemListener, 
     }
 
     protected void find() {
-        this.hex.frame.setSize(MainWindow.getWindowWidth(), MainWindow.getWindowHeight()+60);
-        this.hex.frame.setMinimumSize(new Dimension(MainWindow.getWindowWidth(), MainWindow.getWindowHeight()+60));
         this.findPBar.setString("");
-        this.fP0.add(this.fP1, "West");
-        this.validate();
+        this.fP0.add(this.fP1, BorderLayout.CENTER);
+        this.revalidate();
         this.repaint();
+        this.fJTF[0].requestFocusInWindow();
+    }
+
+    /** Closes the find bar and hands focus back to the byte grid. */
+    protected void hideFind() {
+        if(this.fP0.getComponentCount() == 0) {
+            return;
+        }
+        this.fP0.removeAll();
+        this.revalidate();
+        this.repaint();
+        this.editor.slideScr(-1L, false);
+        this.editor.requestFocusInWindow();
     }
 
     protected void findRunning(boolean testRun) {
+        this.findPBar.setVisible(testRun);
         this.fJB[0].setText(testRun?"Stop":"Next");
         this.fJB[1].setEnabled(!testRun);
         this.findPBar.setValue(0);
@@ -423,12 +468,7 @@ public class MainWindow extends JPanel implements ActionListener, ItemListener, 
         } else if(e.getSource() == this.fJB[0] && this.fJB[0].getText() == "Stop") {
             this.editor.find.interrupt();
         } else if(e.getSource() == this.fJB[1]) { // hide find bar
-            this.hex.frame.setMinimumSize(new Dimension(MainWindow.getWindowWidth(), MainWindow.getWindowHeight()));
-            this.hex.frame.setSize(MainWindow.getWindowWidth(), MainWindow.getWindowHeight());
-            this.fP0.removeAll();
-            this.validate();
-            this.repaint();
-            this.editor.slideScr(-1L, false);
+            this.hideFind();
         } else if(e.getSource().getClass().isInstance(new JMenuItem())) { // help
             boolean isToggleHelp = ((JMenuItem)((JMenuItem)e.getSource())).getText().equals("Toggle help");
             if(isToggleHelp || this.helpFlag) {
