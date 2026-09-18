@@ -1,8 +1,17 @@
 # Ghidra-HexEditor
+
+[![build](https://github.com/sengi12/ghidra-hexEditor/actions/workflows/build.yml/badge.svg)](https://github.com/sengi12/ghidra-hexEditor/actions/workflows/build.yml)
+
 A Hex Editor implemented as a Ghidra Plugin
 > much of the original source code is forked from https://github.com/javadev/hexeditor
 
 ![gui](./img/gui.png)
+
+## Requirements
+
+- Ghidra 11.3.2 or 12.1.3 (both need JDK 21); CI compiles against both on every push.
+  Download from [https://ghidra-sre.org](https://ghidra-sre.org/) and follow the
+  [Ghidra Installation Guide](https://ghidra-sre.org/InstallationGuide.html).
 
 ## Installation and Setup:
 
@@ -10,10 +19,7 @@ A Hex Editor implemented as a Ghidra Plugin
 
    `git clone https://github.com/sengi12/ghidra-hexEditor.git`
 
-2. Install the latest version of Ghidra
-
-   1. Download from: [https://ghidra-sre.org](https://ghidra-sre.org/)
-   2. Refer to the Ghidra Installation Guide: https://ghidra-sre.org/InstallationGuide.html
+2. Install a supported version of Ghidra (see [Requirements](#requirements))
 
 3. Open Ghidra and start a new Project
 
@@ -60,3 +66,8 @@ Only the editor's own components are recolored; Ghidra's look and feel is left u
 | `Esc` | close the find bar |
 | `Ctrl-W` | toggle dark mode |
 | `Ctrl-+` / `Ctrl--` | grow or shrink the byte grid |
+
+## License
+
+Apache License 2.0. See [LICENSE](./LICENSE). Portions are derived from
+[javadev/hexeditor](https://github.com/javadev/hexeditor) (Apache-2.0); see [NOTICE](./NOTICE).
